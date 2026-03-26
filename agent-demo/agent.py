@@ -201,7 +201,7 @@ class Agent:
             while True:
                 try:
                     user_input = await asyncio.to_thread(
-                        input, "\n🧑 You: "
+                        input, "\n👧 You: "
                     )
                     user_input = user_input.strip()
                 except (EOFError, KeyboardInterrupt):

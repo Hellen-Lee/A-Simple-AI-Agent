@@ -13,6 +13,7 @@ try:
     from mcp import ClientSession
     from mcp.client.stdio import stdio_client, StdioServerParameters
     from mcp.client.sse import sse_client
+    from mcp.client.streamable_http import streamable_http_client
 
     HAS_MCP = True
 except ImportError:
@@ -106,7 +107,7 @@ class ToolRegistry:
 
 
 class MCPClient:
-    """Manages connections to one or more MCP servers (stdio / SSE)."""
+    """Manages connections to one or more MCP servers (stdio / SSE / streamable_http)."""
 
     def __init__(self):
         self._stack = AsyncExitStack()
@@ -121,6 +122,8 @@ class MCPClient:
                     await self._connect_stdio(name, cfg)
                 elif transport == "sse":
                     await self._connect_sse(name, cfg)
+                elif transport == "streamable_http":
+                    await self._connect_streamable_http(name, cfg)
                 else:
                     print(f"  ✗ Unknown transport '{transport}' for '{name}'")
                     continue
@@ -150,6 +153,20 @@ class MCPClient:
             raise ImportError("pip install mcp")
         read, write = await self._stack.enter_async_context(
             sse_client(cfg["url"], headers=cfg.get("headers"))
+        )
+        session = await self._stack.enter_async_context(ClientSession(read, write))
+        await session.initialize()
+        self.sessions[name] = session
+
+    async def _connect_streamable_http(self, name: str, cfg: dict) -> None:
+        if not HAS_MCP:
+            raise ImportError("pip install mcp")
+        import httpx
+
+        headers = cfg.get("headers") or {}
+        http_client = httpx.AsyncClient(headers=headers)
+        read, write, _ = await self._stack.enter_async_context(
+            streamable_http_client(cfg["url"], http_client=http_client)
         )
         session = await self._stack.enter_async_context(ClientSession(read, write))
         await session.initialize()
