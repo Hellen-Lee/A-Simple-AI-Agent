@@ -1,7 +1,7 @@
 {
   "api_key": "",
-  "base_url": "https://ark.cn-beijing.volces.com/api/v3",
-  "model": "doubao-1.5-pro-256k-250115",
+  "base_url": "",
+  "model": "",
   "system_prompt": "You are a helpful assistant. Answer in the user's language. Use tools when appropriate.",
   "max_messages": 100,
   "max_tool_rounds": 15,
